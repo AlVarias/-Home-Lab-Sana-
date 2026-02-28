@@ -1,0 +1,14 @@
+---
+- name: Deploy RHEL VM on Proxmox
+  hosts: localhost
+  tasks:
+    - name: Clone VM from Template
+      community.general.proxmox_kvm:
+        api_user: root@pam
+        api_password: "{{ pve_password }}"
+        api_host: 10.5.0.10
+        node: pve-node-01
+        name: nz-health-app-01
+        clone: rhel-9-template
+        format: qcow2
+        timeout: 300
