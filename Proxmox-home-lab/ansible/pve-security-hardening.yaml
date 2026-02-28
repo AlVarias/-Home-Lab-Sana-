@@ -1,0 +1,23 @@
+---
+- name: Proxmox Host Hardening
+  hosts: proxmox_nodes
+  become: yes
+  tasks:
+    - name: Set Login Banner (Legal/Compliance)
+      copy:
+        dest: /etc/issue
+        content: "AUTHORIZED ACCESS ONLY. All activity is logged."
+
+    - name: Disable Unused Services
+      service:
+        name: "{{ item }}"
+        state: stopped
+        enabled: no
+      loop:
+        - rpcbind
+        - nfs-common
+
+    - name: Configure Fail2Ban for PVE Web UI
+      apt:
+        name: fail2ban
+        state: present
