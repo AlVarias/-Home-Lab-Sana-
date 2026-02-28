@@ -1,0 +1,25 @@
+---
+- name: Provision Docker Environment on Proxmox VM
+  hosts: docker_hosts
+  become: yes
+  tasks:
+    - name: Install Docker Dependencies
+      apt:
+        name: [apt-transport-https, ca-certificates, curl, software-properties-common]
+        state: present
+
+    - name: Add Docker GPG Key
+      apt_key:
+        url: https://download.docker.com/linux/ubuntu/gpg
+        state: present
+
+    - name: Install Docker-CE and Docker-Compose
+      apt:
+        name: [docker-ce, docker-compose-plugin]
+        state: present
+
+    - name: Ensure Docker is started and enabled
+      service:
+        name: docker
+        state: started
+        enabled: yes
