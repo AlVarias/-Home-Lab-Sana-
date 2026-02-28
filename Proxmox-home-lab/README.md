@@ -1,0 +1,1 @@
+A centralized repository for Proxmox VE orchestration, focusing on automated VM deployment using Ansible, ZFS storage management, and Linux-bridge networking to simulate an enterprise data center environment.
