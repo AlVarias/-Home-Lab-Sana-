@@ -1,0 +1,55 @@
+version: "3.8"
+
+services:
+  # VPN Service: WireGuard
+  wireguard:
+    image: lscr.io/linuxserver/wireguard:latest
+    container_name: wireguard
+    cap_add:
+      - NET_ADMIN
+      - SYS_MODULE
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Pacific/Auckland
+      - SERVERURL=your.home.ip.or.ddns # Change to your Public IP
+      - SERVERPORT=51820
+      - PEERS=iphone,laptop,tablet
+      - PEERDNS=10.5.0.3 # Points to Pi-hole IP below
+      - INTERNAL_SUBNET=10.13.13.0
+    volumes:
+      - ./vpn/config:/config
+      - /lib/modules:/lib/modules
+    ports:
+      - 51820:51820/udp
+    networks:
+      home_security_net:
+        ipv4_address: 10.5.0.2
+    restart: unless-stopped
+
+  # DNS Firewall: Pi-hole
+  pihole:
+    image: pihole/pihole:latest
+    container_name: pihole
+    environment:
+      - TZ=Pacific/Auckland
+      - WEBPASSWORD=ChooseAStrongPassword
+      - FTLCONF_LOCAL_IPV4=10.5.0.3
+    volumes:
+      - ./firewall/etc-pihole:/etc/pihole
+      - ./firewall/etc-dnsmasq.d:/etc/dnsmasq.d
+    ports:
+      - "53:53/tcp"
+      - "53:53/udp"
+      - "8080:80/tcp" # Access UI at http://localhost:8080/admin
+    networks:
+      home_security_net:
+        ipv4_address: 10.5.0.3
+    restart: unless-stopped
+
+networks:
+  home_security_net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 10.5.0.0/24
