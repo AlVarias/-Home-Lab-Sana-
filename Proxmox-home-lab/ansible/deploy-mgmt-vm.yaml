@@ -1,0 +1,56 @@
+---
+- name: Proxmox Management VM Provisioning & Hardening
+  hosts: management_vms
+  become: yes
+  vars:
+    tailscale_auth_key: "tskey-auth-yourkeyhere" # Replace with your key
+
+  tasks:
+    - name: Update and Upgrade System
+      apt:
+        update_cache: yes
+        upgrade: dist
+
+    - name: Install Essential Networking Tools
+      apt:
+        name:
+          - curl
+          - htop
+          - git
+          - tmux
+          - net-tools
+        state: present
+
+    - name: Install Tailscale (Zero-Trust Remote Access)
+      shell: "curl -fsSL https://tailscale.com/install.sh | sh"
+      args:
+        creates: /usr/bin/tailscale
+
+    - name: Authenticate Tailscale
+      command: "tailscale up --authkey={{ tailscale_auth_key }}"
+      register: tailscale_result
+      changed_when: "'Success' in tailscale_result.stdout"
+
+    - name: Harden SSH Configuration (Disable Passwords)
+      lineinfile:
+        path: /etc/ssh/sshd_config
+        regexp: '^#?PasswordAuthentication'
+        line: 'PasswordAuthentication no'
+      notify: restart ssh
+
+    - name: Enable UFW Firewall
+      ufw:
+        state: enabled
+        policy: deny
+
+    - name: Allow SSH Traffic
+      ufw:
+        rule: allow
+        port: '22'
+        proto: tcp
+
+  handlers:
+    - name: restart ssh
+      service:
+        name: ssh
+        state: restarted
