@@ -1,0 +1,4 @@
+# Default blocklist
+https://raw.githubusercontent.com/StevenBlack/hosts/master/hosts
+# Malware & Telemetry blocklist
+https://mirror1.malwaredomains.com/files/justdomains
